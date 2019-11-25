@@ -32,6 +32,10 @@
     "ParameterValue": "dotnetcore2.1"
   },
   {
+    "ParameterKey": "LambdaTimeoutParam",
+    "ParameterValue": "30"
+  },
+  {
     "ParameterKey": "ElasticSearchDomainUrlParam",
     "ParameterValue": "https://xxxelasticserviceurlxxx"
   },

@@ -32,6 +32,12 @@ Parameters:
       - dotnetcore2.1
       - nodejs10.x
       - python3.7
+  LambdaTimeoutParam:
+    Type: Number
+    Description: Lambda Timeout (when set too low, this will not init and insert into Elastic Search in time)
+    Default: 30
+    MinValue: 15
+
   ElasticSearchDomainUrlParam:
     Type: String
     Description: The Elastic Search Domain Url
@@ -49,6 +55,7 @@ Metadata:
           - LambdaFunctionNameParam
           - LambdaHandlerParam
           - LambdaRuntimeParam
+          - LambdaTimeoutParam
       -
         Label:
           default: "SNS Configuration"
@@ -131,7 +138,7 @@ Resources:
           ENV: !Ref EnvironmentName
           ESurl: !Ref ElasticSearchDomainUrlParam
           ESindexName: !Ref ElasticSearchDefaultIndexParam
-      Timeout: 30 # when too low, this will not end inserting in elastic search !
+      Timeout: !Ref LambdaTimeoutParam
       # Enable XRay
       TracingConfig:
         Mode: "Active"

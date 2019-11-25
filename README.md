@@ -47,7 +47,7 @@ cloudformation/
 ```
 
 Customize with your own values :
-- your S3 bucket (***must change to be global and unique name***)
+- your S3 bucket (**must change to be global and unique name**)
 - your elastic search service url
 - your SNS Topic
 - ..etc
@@ -57,7 +57,14 @@ Customize with your own values :
 
 When clicking the bat file, these parameters will be passed to the cloud formation template.
 
-## <span style="color:green">Deploy only the lambda worker artifact to AWS</span>
+### Important note on the Lambda function timeout
+
+As it takes like more than 10s the first time it is initializing the elastic search client (and indexing),
+the lambda function should be configured with a timeout of **15s minimum**, otherwise it will not run and trace any logs in CloudWatch.
+
+See parameter ***LambdaTimeoutParam*** in the cloud formation template.
+
+## <span style="color:green">Deploy solely the lambda worker artifact to AWS</span>
 
 This additionnal section details a way to upload the lambda worker manually.<br/>
 This will not create the whole setup (create SNS topic, create Lambda Role ..etc).
@@ -70,7 +77,7 @@ On the project, right click to publish:
 
 ![alt capture](https://github.com/danmgs/AWS.Lambda.Worker/blob/master/img/publishtoaws2.PNG)
 
-Fill the options. Please note that these values will edit the file ***aws-lambda-tools-defaults.json*** accordingly.
+Fill the options. Please note that these values will edit the file **aws-lambda-tools-defaults.json** accordingly.
 
 
 ![alt capture](https://github.com/danmgs/AWS.Lambda.Worker/blob/master/img/publishtoaws3.PNG)
@@ -106,8 +113,8 @@ Please note the lambda function is implemented in ***dotnetcore2.1*** as AWS man
 In order to run, the lambda function ...
 - is triggered when a message is published to the SNS topic.
 - indexed the message to an elastic search service. <br/>
-The url of this service is passed as the environment variable ***ESurl***.<br/>
-When the environment variable is not existing, there is a fallback configuration (see file ***appsettings.json***).<br/>
+The url of this service is passed as the environment variable "**ESurl**".<br/>
+When the environment variable is not existing, there is a fallback configuration (see file **appsettings.json**).<br/>
 But this is not recommended as it is not convenient to configured this way.
 
 ## <span style="color:green">Useful links</span>
