@@ -1,0 +1,42 @@
+[
+  {
+    "ParameterKey": "EnvironmentName",
+    "ParameterValue": "test"
+  },
+  {
+    "ParameterKey": "S3BucketParam",
+    "ParameterValue": "com.aws.lambda.worker.cloudformation"
+  },
+  {
+    "ParameterKey": "S3KeyParam",
+    "ParameterValue": "AWS.Lambda.Worker.zip"
+  },
+  {
+    "ParameterKey": "SNSTopicNameParam",
+    "ParameterValue": "MyAWSWorkerSNSTopic"
+  },
+  {
+    "ParameterKey": "SNSDisplayNameParam",
+    "ParameterValue": "My AWS Worker SNS DisplayName"
+  },
+  {
+    "ParameterKey": "LambdaFunctionNameParam",
+    "ParameterValue": "MyAWSLambdaWorker"
+  },
+  {
+    "ParameterKey": "LambdaHandlerParam",
+    "ParameterValue": "AWS.Lambda.Worker::AWS.Lambda.Worker.Function::FunctionIndexingHandler"
+  },
+  {
+    "ParameterKey": "LambdaRuntimeParam",
+    "ParameterValue": "dotnetcore2.1"
+  },
+  {
+    "ParameterKey": "ElasticSearchDomainUrlParam",
+    "ParameterValue": "https://xxxelasticserviceurlxxx"
+  },
+  {
+    "ParameterKey": "ElasticSearchDefaultIndexParam",
+    "ParameterValue": "message"
+  }
+]

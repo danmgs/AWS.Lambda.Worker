@@ -1,0 +1,176 @@
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: test
+    Description: "A friendly environment name that will be used for namespacing the output resources. Example: test, staging, qa, or production"
+  S3BucketParam:
+    Type: String
+    Description: S3 Bucket
+    # AllowedPattern: "^[0-9A-Za-z\\.\\-_]*(?<!\\.)$"
+    # ConstraintDescription: Must be a valid bucket name
+  S3KeyParam:
+    Type: String
+    Description: S3 Key
+  SNSTopicNameParam:
+    Type: String
+    Description: SNS Topic Name
+  SNSDisplayNameParam:
+    Type: String
+    Description: SNS Display Name
+  LambdaFunctionNameParam:
+    Type: String
+    Description: Lambda Name
+  LambdaHandlerParam:
+    Type: String
+    Description: Lambda Handler Full Name
+    Default: "AWS.Lambda.Worker::AWS.Lambda.Worker.Function::FunctionIndexingHandler"
+  LambdaRuntimeParam:
+    Type: String
+    Description: Lambda Runtime
+    Default: "dotnetcore2.1"
+    AllowedValues:
+      - dotnetcore2.1
+      - nodejs10.x
+      - python3.7
+  ElasticSearchDomainUrlParam:
+    Type: String
+    Description: The Elastic Search Domain Url
+  ElasticSearchDefaultIndexParam:
+    Type: String
+    Description: The Elastic Search Default Index
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: "Lambda Configuration"
+        Parameters:
+          - LambdaFunctionNameParam
+          - LambdaHandlerParam
+          - LambdaRuntimeParam
+      -
+        Label:
+          default: "SNS Configuration"
+        Parameters:
+          - SNSTopicNameParam
+          - SNSDisplayNameParam
+      -
+        Label:
+          default: "S3 Configuration"
+        Parameters:
+          - S3BucketParam
+          - S3KeyParam
+      -
+        Label:
+          default: "Elastic Search Configuration"
+        Parameters:
+          - ElasticSearchDomainUrlParam
+          - ElasticSearchDefaultIndexParam
+
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Sid: ""
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:*
+            Resource: arn:aws:logs:*:*:*
+          - Effect: Allow
+            Action:
+            - xray:PutTraceSegments
+            - xray:PutTelemetryRecords
+            - xray:GetSamplingRules
+            - xray:GetSamplingTargets
+            - xray:GetSamplingStatisticSummaries
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - s3:Get*
+            - s3:List*
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - es:ESHttpPost
+            Resource: arn:aws:es:*:*:*
+
+  LambdaWithXRay:
+    Type: "AWS::Lambda::Function"
+    DependsOn: LambdaExecutionRole
+    Properties:
+      FunctionName: !Ref LambdaFunctionNameParam
+      Handler: !Ref LambdaHandlerParam
+      Role:
+        Fn::GetAtt:
+          - "LambdaExecutionRole"
+          - "Arn"
+      Code:
+        S3Bucket:
+          Ref: S3BucketParam
+        S3Key:
+          Ref: S3KeyParam
+      Runtime: !Ref LambdaRuntimeParam
+      Environment:
+        Variables:
+          ENV: !Ref EnvironmentName
+          ESurl: !Ref ElasticSearchDomainUrlParam
+          ESindexName: !Ref ElasticSearchDefaultIndexParam
+      Timeout: 30 # when too low, this will not end inserting in elastic search !
+      # Enable XRay
+      TracingConfig:
+        Mode: "Active"
+  # SNSTopic:
+  #   Type: "AWS::SNS::Topic"
+  SNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      TopicName: !Ref SNSTopicNameParam
+      DisplayName: !Ref SNSDisplayNameParam
+      Subscription:
+        - Endpoint:
+            "Fn::GetAtt":
+              - LambdaWithXRay
+              - Arn
+          Protocol: lambda
+  PermissionForEventsToInvokeLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt
+        - LambdaWithXRay
+        - Arn
+      Action: 'lambda:InvokeFunction'
+      Principal: sns.amazonaws.com
+      SourceArn: !Ref SNSTopic
+
+Outputs:
+  StackLambdaWithXRayOutput:
+    Description: The Lambda With XRay
+    Value: !Ref LambdaWithXRay
+    Export:
+      Name: !Sub ${EnvironmentName}:LambdaWithXRay
+  StackSNSTopicOutput:
+    Description: The SNS Topic
+    Value: !Ref SNSTopic
+    Export:
+      Name: !Sub ${EnvironmentName}:SNSTopic
+  StackElasticSearchDomainUrlOutput:
+    Description: The Elastic Search Domain Url
+    Value: !Ref ElasticSearchDomainUrlParam
+    Export:
+      Name: !Sub ${EnvironmentName}:ElasticSearchDomainUrl
