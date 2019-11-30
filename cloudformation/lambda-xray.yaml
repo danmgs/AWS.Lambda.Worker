@@ -142,8 +142,7 @@ Resources:
       # Enable XRay
       TracingConfig:
         Mode: "Active"
-  # SNSTopic:
-  #   Type: "AWS::SNS::Topic"
+
   SNSTopic:
     Type: "AWS::SNS::Topic"
     Properties:

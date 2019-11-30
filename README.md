@@ -2,6 +2,8 @@
 
 An AWS Lambda Worker that is triggered by SNS Topic in order to index message to an Elastic Search Service.
 
+![alt capture](https://github.com/danmgs/AWS.Lambda.Worker/blob/master/img/AWS_Lambda_Worker_Diagram.svg)
+
 ![alt capture](https://github.com/danmgs/AWS.Lambda.Worker/blob/master/img/deployed1.PNG)
 
 ## <span style="color:green">Build the lambda zip file and upload to S3</span>
